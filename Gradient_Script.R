@@ -907,4 +907,3 @@ g5
 ## Save graphs with higher confidence intevals
 ggsave("F:/PhD/Chapter 1 Gradient Plots/Figures/Total non-woody species richness_SBAMod_tlo_hi.pdf",width = 8,height = 6,units = "in",dpi = 400)
 ggsave("F:/PhD/Chapter 1 Gradient Plots/Figures/Total non-woody species richness_SBAMod_tlo_hi.jpg",width = 8,height = 6,units = "in",dpi = 400)
-# Delete this
