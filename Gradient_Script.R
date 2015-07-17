@@ -8,6 +8,7 @@ install.packages("gridExtra")
 library(gridExtra) ## Display graphs in columns and rows (Depends on graphs - sometimes can use ggplots)
 library(ggplot2)
 library(lattice) # For dotplot (caterpillar plots)
+library(pgirmess) # Kruskal-wallis post-hoc
 
 ## Read functions that will come in useful later
 # Plots graphs with standard error
@@ -612,3 +613,297 @@ g5
 ## Save graphs with higher confidence intevals
 ggsave("F:/PhD/Chapter 1 Gradient Plots/Figures/Total ground flora richness_SBAMod_tlo_hi.pdf",width = 8,height = 6,units = "in",dpi = 400)
 ggsave("F:/PhD/Chapter 1 Gradient Plots/Figures/Total ground flora richness_SBAMod_tlo_hi.jpg",width = 8,height = 6,units = "in",dpi = 400)
+
+## The richness of all ground flora (woody and non-woody species) - "CompTree"
+# Inspect data
+hist(Gradient6$CompTree)
+#Shapiro-Wilk for normaility tests as x has levels (without adjusting for multiple testing). 
+do.call("rbind", with(Gradient6, tapply(CompTree, Plot,
+                                        function(x) unlist(shapiro.test(x)[c("statistic", "p.value")])))) 
+bartlett.test(resid(lm(CompTree~Plot))~Plot,data=Gradient6) # Homogeneity of Variance of residuals
+kruskal.test(CompTree~Plot,data=Gradient6) # non-parametric one.way anova equivalent
+
+# Use the summarySE function to determine standard error for data
+newSE <- summarySE(Gradient6, measurevar="CompTree", groupvars=c("Plot"))
+g<-ggplot(newSE, aes(x=Plot, y=CompTree,group=1)) + 
+  geom_errorbar(aes(ymin=CompTree-se, ymax=CompTree+se), width=0.1,size=1.3) +
+  geom_line(size=1)+geom_point(size=10,shape=20,col="black")
+g
+# Change the axis text
+g2<-g + theme(axis.text.x=element_text(angle=55, size=14, vjust=0.5)) + theme(axis.text.y=element_text(angle=0, size=14, vjust=0.5))+
+  labs(x="Stage of collapse", y="Total woody species richness")
+g3<-g2+theme(axis.text = element_text(size = 50, colour = "black"), panel.background = element_rect(fill = "white", colour = NA))
+g4<-g3+theme(axis.title.y = element_text(size = rel(1), angle = 90,vjust=1.5),
+             axis.title.x = element_text(size = rel(1)))
+g4
+# Change the aesthetics
+GF1<-g4+theme(panel.border = element_rect(color="darkred", size=0.5, linetype="solid",fill=NA))
+GF1
+## Save the figures to file 
+ggsave("F:/PhD/Chapter 1 Gradient Plots/Figures/Total woody species richness_SE.pdf",width = 8,height = 6,units = "in",dpi = 400)
+ggsave("F:/PhD/Chapter 1 Gradient Plots/Figures/Total woody species richness_SE.jpg",width = 8,height = 6,units = "in",dpi = 400)
+
+ggplot(Gradient6,aes(x=SBAPC,y=CompTree,colour=Site))+geom_point()+facet_wrap(~Site)+geom_smooth(method="glm", family="poisson") # Visualise how the slope differs at each site
+ggsave("F:/PhD/Chapter 1 Gradient Plots/Figures/Total woody species richness_Site difference.pdf",width = 8,height = 6,units = "in",dpi = 400)
+ggsave("F:/PhD/Chapter 1 Gradient Plots/Figures/Total woody species richness_Site difference.jpg",width = 8,height = 6,units = "in",dpi = 400)
+
+# Linear regression including site as a random effect
+lr1<-glmer(CompTree~Plot+(1|Site), data=Gradient6,family=poisson) # Poisson error distribution used because it is count data
+summary(lr1)
+
+## Random effects modelling
+Modnull<-glm(CompTree~1,data=Gradient6,family=poisson)
+Modnull1<-glmer(CompTree~ 1 +(1|Site),data=Gradient6,family=poisson) # Site only as random effect
+Modnull2<- glmer(CompTree~ 1 +(1|Site)+(1|Soil_Type),data=Gradient6,family=poisson) # Try site and soil type as random effects
+# Test to see if random effects make a difference - judge by std. dev being higher than 0
+print(Modnull)
+print(Modnull1)# STD for site is 0 - don't include.
+# Use Modnull
+
+# Create different models. Focus on plot first just using Plot as a factor
+Mod<-glm(CompTree ~ Plot, data = Gradient6,family=poisson)
+# Use mixed models that includes a proxy measure of herbivore pressure. In this case, it is Dung, a measure of dung counts of all herbivores 
+Mod1<- glm(CompTree~Plot+Dung ,data=Gradient6,family=poisson)
+Mod2<- glm(CompTree~Plot ,data=Gradient6,family=poisson)
+Mod3<- glm(CompTree~Plot*Dung ,data=Gradient6,family=poisson)
+Mod4<- glm(CompTree~Dung ,data=Gradient6,family=poisson)
+AICc(Mod1, Mod2,Mod3,Mod4,Modnull)
+Modelfun<-list(Mod1,Mod2,Mod3,Mod4,Modnull)
+#summarise these in this table
+Model_tab<-model.sel(Modelfun)
+Model_tab # 0.695 weight for model with plot only - Mod2
+# Check diagnostic plots
+plot(Modnull) # Looks ok
+# Use r-squared below because mixed effects are used
+r.squaredGLMM(Modnull)
+
+# Model continous SBA percent change for count data
+# Run null models 
+Mod0.1<- glmer(CompTree ~1 + (SBAPC| Site), data = Gradient6,family=poisson)
+Mod0.2<- glmer(CompTree ~1 + (1 | Site), data = Gradient6,family=poisson)
+Mod0.3<-glm(CompTree~1,data=Gradient6,family=poisson)
+AICc(Mod0.1,Mod0.2,Mod0.3) # shows that the random effects should include SBAPC change per site
+Mod1<-glm(CompTree ~ SBAPC+Dung  , data = Gradient6,family=poisson)
+Mod2<-glm(CompTree ~ SBAPC*Dung  , data = Gradient6,family=poisson)
+Mod3<-glm(CompTree~Dung , data = Gradient6,family=poisson)
+Mod4<-glm(CompTree~SBAPC , data = Gradient6,family=poisson)
+Mod5<-glm(CompTree~SBAPC+I(SBAPC^2) , data = Gradient6,family=poisson)
+## Test which model exhibits most parsimony based on AICc value
+AICc(Mod1,Mod2,Mod3,Mod4,Mod5, Mod0.3)
+# Best model is Mod4, according to AIC. Let's see about the weight of each model
+#come up with a list of models 
+ModelGF<-list(Mod1,Mod2,Mod3,Mod4,Mod5, Mod0.3)
+#summarise these in this table
+Model_tab<-model.sel(ModelGF)
+Model_tab # Nearly all weight goes to the best model, which uses a first and second order term only - Mod5
+# Check the diagnostic models
+plot(Mod4) # Looks fine
+r.squaredGLMM(Mod4) # Obtain r2 values
+summary(Mod4) # Check significance of terms
+
+# Plot graphs based on the predictions of the best fitting model
+Gradient6$Pred_R<-predict(Mod4)
+new.data<-expand.grid(SBAPC=seq(0,1,0.01),
+                      Dung=mean(Gradient6$Dung),
+                      Site=levels(Gradient6$Site))
+# Produce new databases from predictions of data
+newdat<-expand.grid(SBAPC=seq(0,1,0.01),
+                    Site=levels(Gradient6$Site),
+                    Dung=mean(Gradient6$Dung),
+                    CompTree=0)
+# Prodcue confidence intervals
+mm <- model.matrix(terms(Mod4),newdat)
+newdat$CompTree <- predict(Mod4,newdat,re.form=NA)
+pvar1 <- diag(mm %*% tcrossprod(vcov(Mod4),mm))
+tvar1 <- pvar1+VarCorr(Mod4)$Site[1]
+cmult <- 2
+newdat <- data.frame(
+  newdat
+  , plo = newdat$CompTree-cmult*sqrt(pvar1)
+  , phi = newdat$CompTree+cmult*sqrt(pvar1)
+  , tlo = newdat$CompTree-cmult*sqrt(tvar1)
+  , thi = newdat$CompTree+cmult*sqrt(tvar1)
+)
+new.data$Pred_R<-predict(Mod4,newdata=new.data)
+new.data$Pred<-predict(Mod4,newdata=new.data,re.form=NA) # Doesn't inlcude random effect terms
+theme_set(theme_bw(base_size=12))
+Grad_plot1<-ggplot(Gradient6,aes(x=SBAPC*100,y=(CompTree),group=Site,colour=Site))+geom_point()+guides(color = "none")
+Grad_plot1
+Grad_plot2<-Grad_plot1+geom_line(data=newdat,size=2,colour="black",aes(y=exp(CompTree),x=SBAPC*100,group=NULL))+
+  theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank(),panel.border = element_rect(size=1.5,colour="black",fill=NA))
+Grad_plot3<-Grad_plot2+geom_ribbon(data=newdat,aes(ymax=exp(phi),ymin=exp(plo)),alpha=0.01,colour=NA)
+g2<-Grad_plot3+labs(x="Percentage loss of basal area relative to reference", y="Total woody species richness")
+g3<-g2+theme(axis.text = element_text(size = 14, colour = "black"), panel.background = element_rect(fill = "white", colour = NA))
+g4<-g3+theme(axis.title.y = element_text(size = rel(1), angle = 90),
+             axis.title.x = element_text(size = rel(1)))
+g4
+g5<-g4+theme(panel.border = element_rect(color="darkred", size=0.5, linetype="solid",fill=NA))
+g5
+## Save graphs with lower confidence intevals
+ggsave("F:/PhD/Chapter 1 Gradient Plots/Figures/Total woody species richness_SBAMod_plo_hi.pdf",width = 8,height = 6,units = "in",dpi = 400)
+ggsave("F:/PhD/Chapter 1 Gradient Plots/Figures/Total woody species richness_SBAMod_plo_hi.jpg",width = 8,height = 6,units = "in",dpi = 400)
+Grad_plot2<-Grad_plot1+geom_line(data=newdat,size=2,colour="black",aes(y=exp(CompTree),x=SBAPC*100,group=NULL))+
+  theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank(),panel.border = element_rect(size=1.5,colour="black",fill=NA))
+Grad_plot3<-Grad_plot2+geom_ribbon(data=newdat,aes(ymax=exp(thi),ymin=exp(tlo)),alpha=0.01,colour=NA)
+g2<-Grad_plot3+labs(x="Percentage loss of basal area relative to reference", y="Total woody species richness")
+g3<-g2+theme(axis.text = element_text(size = 14, colour = "black"), panel.background = element_rect(fill = "white", colour = NA))
+g4<-g3+theme(axis.title.y = element_text(size = rel(1), angle = 90),
+             axis.title.x = element_text(size = rel(1)))
+g4
+g5<-g4+theme(panel.border = element_rect(color="darkred", size=0.5, linetype="solid",fill=NA))
+g5
+## Save graphs with higher confidence intevals
+ggsave("F:/PhD/Chapter 1 Gradient Plots/Figures/Total woody species richness_SBAMod_tlo_hi.pdf",width = 8,height = 6,units = "in",dpi = 400)
+ggsave("F:/PhD/Chapter 1 Gradient Plots/Figures/Total woody species richness_SBAMod_tlo_hi.jpg",width = 8,height = 6,units = "in",dpi = 400)
+
+# Non-woody species richness
+## The richness of all ground flora (woody and non-woody species) - "CompGF"
+# Inspect data
+hist(Gradient6$CompGF)
+#Shapiro-Wilk for normaility tests as x has levels (without adjusting for multiple testing). 
+do.call("rbind", with(Gradient6, tapply(CompGF, Plot,
+                                        function(x) unlist(shapiro.test(x)[c("statistic", "p.value")])))) 
+bartlett.test(resid(lm(CompGF~Plot))~Plot,data=Gradient6) # Homogeneity of Variance of residuals
+oneway.test(CompGF~Plot,data=Gradient6) #one-way ANOVA with welch's correction due to heterogeneity of variance
+# Following Welch's one.way, Games-Howell post hoc can be used
+tukey(Gradient6$CompGF,Gradient6$Plot,method="Games-Howell") # Need a post-hoc test for Welch's correction anova
+
+# Use the summarySE function to determine standard error for data
+newSE <- summarySE(Gradient6, measurevar="CompGF", groupvars=c("Plot"))
+g<-ggplot(newSE, aes(x=Plot, y=CompGF,group=1)) + 
+  geom_errorbar(aes(ymin=CompGF-se, ymax=CompGF+se), width=0.1,size=1.3) +
+  geom_line(size=1)+geom_point(size=10,shape=20,col="black")
+g
+# Change the axis text
+g2<-g + theme(axis.text.x=element_text(angle=55, size=14, vjust=0.5)) + theme(axis.text.y=element_text(angle=0, size=14, vjust=0.5))+
+  labs(x="Stage of collapse", y="Total non-woody species richness")
+g3<-g2+theme(axis.text = element_text(size = 50, colour = "black"), panel.background = element_rect(fill = "white", colour = NA))
+g4<-g3+theme(axis.title.y = element_text(size = rel(1), angle = 90,vjust=1.5),
+             axis.title.x = element_text(size = rel(1)))
+g4
+# Change the aesthetics
+GF1<-g4+theme(panel.border = element_rect(color="darkred", size=0.5, linetype="solid",fill=NA))
+GF1
+## Save the figures to file 
+ggsave("F:/PhD/Chapter 1 Gradient Plots/Figures/Total non-woody species richness_SE.pdf",width = 8,height = 6,units = "in",dpi = 400)
+ggsave("F:/PhD/Chapter 1 Gradient Plots/Figures/Total non-woody species richness_SE.jpg",width = 8,height = 6,units = "in",dpi = 400)
+
+ggplot(Gradient6,aes(x=SBAPC,y=CompGF,colour=Site))+geom_point()+facet_wrap(~Site)+geom_smooth(method="glm", family="poisson") # Visualise how the slope differs at each site
+ggsave("F:/PhD/Chapter 1 Gradient Plots/Figures/Total non-woody species richness_Site difference.pdf",width = 8,height = 6,units = "in",dpi = 400)
+ggsave("F:/PhD/Chapter 1 Gradient Plots/Figures/Total non-woody species richness_Site difference.jpg",width = 8,height = 6,units = "in",dpi = 400)
+
+# Linear regression including site as a random effect
+lr1<-glmer(CompGF~Plot+(1|Site), data=Gradient6,family=poisson) # Poisson error distribution used because it is count data
+summary(lr1)
+r.squaredGLMM(lr1)
+confint(lr1)
+coefs <- data.frame(coef(summary(lr1)))
+# use normal distribution to approximate p-value
+coefs$p.z <- 2 * (1 - pnorm(abs(coefs$t.value)))
+coefs
+summary(glht(lr1,linfct=mcp(Plot="Tukey")))
+
+## Random effects modelling
+Modnull<-glm(CompGF~1,data=Gradient6,family=poisson)
+Modnull1<-glmer(CompGF~ 1 +(1|Site),data=Gradient6,family=poisson) # Site only as random effect
+Modnull2<- glmer(CompGF~ 1 +(1|Site)+(1|Soil_Type),data=Gradient6,family=poisson) # Try site and soil type as random effects
+# Test to see if random effects make a difference - judge by std. dev being higher than 0
+print(Modnull)
+print(Modnull1)
+print(Modnull2)# STD for Soil is 0 - don't include.
+# Use Modnull1
+
+# Create different models. Focus on plot first just using Plot as a factor
+Mod<-glmer(CompGF ~ Plot+(1|Site), data = Gradient6,family=poisson)
+# Use mixed models that includes a proxy measure of herbivore pressure. In this case, it is Dung, a measure of dung counts of all herbivores 
+Mod1<- glmer(CompGF~Plot+Dung +(1|Site),data=Gradient6,family=poisson)
+Mod2<- glmer(CompGF~Plot +(1|Site),data=Gradient6,family=poisson)
+Mod3<- glmer(CompGF~Plot*Dung +(1|Site),data=Gradient6,family=poisson)
+Mod4<- glmer(CompGF~Dung +(1|Site),data=Gradient6,family=poisson)
+AICc(Mod1, Mod2,Mod3,Mod4,Modnull1)
+Modelfun<-list(Mod1,Mod2,Mod3,Mod4,Modnull1)
+#summarise these in this table
+Model_tab<-model.sel(Modelfun)
+Model_tab # 0.714 weight for model with plot only - Mod2
+# Check diagnostic plots
+plot(Mod2) # Looks ok
+# Use r-squared below because mixed effects are used
+r.squaredGLMM(Mod2)
+
+# Model continous SBA percent change for count data
+# Run null models 
+Mod0.1<- glmer(CompGF ~1 + (SBAPC| Site), data = Gradient6,family=poisson)
+Mod0.2<- glmer(CompGF ~1 + (1 | Site), data = Gradient6,family=poisson)
+Mod0.3<-glm(CompGF~1,data=Gradient6,family=poisson)
+AICc(Mod0.1,Mod0.2,Mod0.3) # shows that the random effects should include SBAPC change per site
+Mod1<-glmer(CompGF ~ SBAPC+Dung  + (SBAPC| Site), data = Gradient6,family=poisson)
+Mod2<-glmer(CompGF ~ SBAPC*Dung  + (SBAPC| Site), data = Gradient6,family=poisson)
+Mod3<-glmer(CompGF~Dung + (SBAPC| Site), data = Gradient6,family=poisson)
+Mod4<-glmer(CompGF~SBAPC+ (SBAPC| Site) , data = Gradient6,family=poisson)
+Mod5<-glmer(CompGF~SBAPC+I(SBAPC^2)+ (SBAPC| Site) , data = Gradient6,family=poisson)
+## Test which model exhibits most parsimony based on AICc value
+AICc(Mod1,Mod2,Mod3,Mod4,Mod5, Mod0.1)
+#come up with a list of models 
+ModelGF<-list(Mod1,Mod2,Mod3,Mod4,Mod5, Mod0.1)
+#summarise these in this table
+Model_tab<-model.sel(ModelGF)
+Model_tab # Nearly all weight goes to the best model, which uses a first and second order term only - Mod5
+# Check the diagnostic models
+plot(Mod5) # Looks fine
+r.squaredGLMM(Mod5) # Obtain r2 values
+summary(Mod4) # Check significance of terms
+
+# Plot graphs based on the predictions of the best fitting model
+Gradient6$Pred_R<-predict(Mod4)
+new.data<-expand.grid(SBAPC=seq(0,1,0.01),
+                      Dung=mean(Gradient6$Dung),
+                      Site=levels(Gradient6$Site))
+# Produce new databases from predictions of data
+newdat<-expand.grid(SBAPC=seq(0,1,0.01),
+                    Site=levels(Gradient6$Site),
+                    Dung=mean(Gradient6$Dung),
+                    CompGF=0)
+# Prodcue confidence intervals
+mm <- model.matrix(terms(Mod4),newdat)
+newdat$CompGF <- predict(Mod4,newdat,re.form=NA)
+pvar1 <- diag(mm %*% tcrossprod(vcov(Mod4),mm))
+tvar1 <- pvar1+VarCorr(Mod4)$Site[1]
+cmult <- 2
+newdat <- data.frame(
+  newdat
+  , plo = newdat$CompGF-cmult*sqrt(pvar1)
+  , phi = newdat$CompGF+cmult*sqrt(pvar1)
+  , tlo = newdat$CompGF-cmult*sqrt(tvar1)
+  , thi = newdat$CompGF+cmult*sqrt(tvar1)
+)
+new.data$Pred_R<-predict(Mod4,newdata=new.data)
+new.data$Pred<-predict(Mod4,newdata=new.data,re.form=NA) # Doesn't inlcude random effect terms
+theme_set(theme_bw(base_size=12))
+Grad_plot1<-ggplot(Gradient6,aes(x=SBAPC*100,y=(CompGF),group=Site,colour=Site))+geom_point()+guides(color = "none")
+Grad_plot1
+Grad_plot2<-Grad_plot1+geom_line(data=newdat,size=2,colour="black",aes(y=exp(CompGF),x=SBAPC*100,group=NULL))+
+  theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank(),panel.border = element_rect(size=1.5,colour="black",fill=NA))
+Grad_plot3<-Grad_plot2+geom_ribbon(data=newdat,aes(ymax=exp(phi),ymin=exp(plo)),alpha=0.01,colour=NA)
+g2<-Grad_plot3+labs(x="Percentage loss of basal area relative to reference", y="Total non-woody species richness")
+g3<-g2+theme(axis.text = element_text(size = 14, colour = "black"), panel.background = element_rect(fill = "white", colour = NA))
+g4<-g3+theme(axis.title.y = element_text(size = rel(1), angle = 90),
+             axis.title.x = element_text(size = rel(1)))
+g4
+g5<-g4+theme(panel.border = element_rect(color="darkred", size=0.5, linetype="solid",fill=NA))
+g5
+## Save graphs with lower confidence intevals
+ggsave("F:/PhD/Chapter 1 Gradient Plots/Figures/Total non-woody species richness_SBAMod_plo_hi.pdf",width = 8,height = 6,units = "in",dpi = 400)
+ggsave("F:/PhD/Chapter 1 Gradient Plots/Figures/Total non-woody species richness_SBAMod_plo_hi.jpg",width = 8,height = 6,units = "in",dpi = 400)
+Grad_plot2<-Grad_plot1+geom_line(data=newdat,size=2,colour="black",aes(y=exp(CompGF),x=SBAPC*100,group=NULL))+
+  theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank(),panel.border = element_rect(size=1.5,colour="black",fill=NA))
+Grad_plot3<-Grad_plot2+geom_ribbon(data=newdat,aes(ymax=exp(thi),ymin=exp(tlo)),alpha=0.01,colour=NA)
+g2<-Grad_plot3+labs(x="Percentage loss of basal area relative to reference", y="Total non-woody species richness")
+g3<-g2+theme(axis.text = element_text(size = 14, colour = "black"), panel.background = element_rect(fill = "white", colour = NA))
+g4<-g3+theme(axis.title.y = element_text(size = rel(1), angle = 90),
+             axis.title.x = element_text(size = rel(1)))
+g4
+g5<-g4+theme(panel.border = element_rect(color="darkred", size=0.5, linetype="solid",fill=NA))
+g5
+## Save graphs with higher confidence intevals
+ggsave("F:/PhD/Chapter 1 Gradient Plots/Figures/Total non-woody species richness_SBAMod_tlo_hi.pdf",width = 8,height = 6,units = "in",dpi = 400)
+ggsave("F:/PhD/Chapter 1 Gradient Plots/Figures/Total non-woody species richness_SBAMod_tlo_hi.jpg",width = 8,height = 6,units = "in",dpi = 400)
