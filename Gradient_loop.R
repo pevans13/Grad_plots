@@ -1,10 +1,15 @@
 #script to loop through different models
 
+rm(list = ls())
+
 #load up packages
 library(ggplot2)
 library(plyr)
 library(lme4)
 library(MuMIn)
+library(reshape)
+
+se <- function(x) sqrt(var(x)/length(x))
 
 #load data
 Gradient<- read.csv("FinPlots7.csv")
@@ -21,7 +26,6 @@ for (i in 5:(ncol(Gradient))){
   print(Hist)
 }
 dev.off()
-
 
 pdf("Figures/Gradient_models.pdf")
 #loop to go through different variables and produce models and figures for each of these
@@ -58,3 +62,18 @@ for (i in 5:(ncol(Gradient))){
  }
 }
 dev.off()
+
+#loop to estimate standard errors of plots for each variable
+for (i in 5:(ncol(Gradient))){
+  print(i)
+  summarySE(Gradient, measurevar=names[[i]], groupvars=c("Plot"))
+}
+
+head(Gradient)
+
+Gradient_melt<-melt(Gradient,id.vars = c("Site","Plot"))
+Gradient_melt$value<-ifelse(is.na(Gradient_melt$value),0,Gradient_melt$value)
+Gradient_summary<-ddply(Gradient_melt,.(Plot,variable),summarise,Mean=mean(value),SE=se(value))
+
+ggplot(Gradient_summary,aes(x=Plot,y=Mean,ymax=Mean+(2*SE),ymin=Mean-(2*SE)))+geom_pointrange()+facet_wrap(~variable,scales = "free_y")
+ggsave("Figures/Gradient_summary.pdf",height=15,width=30,dpi=500,units="in")
