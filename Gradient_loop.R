@@ -22,6 +22,38 @@ for (i in 5:(ncol(Gradient))){
 }
 dev.off()
 
+#loop to produce graphs and standard error bars
+pdf("Figures/Standard error plot graphs.pdf")
+names<-colnames(Gradient[,5:ncol(Gradient)])
+for (i in 5:(ncol(Gradient))){
+  #this produces a graph with standard error bars
+  SE<-ggplot(Gradient,aes(x=Gradient[[4+i]]))+geom_line()+geom_errorbar()+xlab(names[i])+
+    ggtitle(names[i])+ theme(plot.title = element_text(lineheight=.8, face="bold",size=20))
+  print(SE)
+}
+
+for (i in 10:(ncol(Gradient))){
+newSE <- summarySE(Gradient, measurevar=names[i], groupvars=c("Plot"))
+}
+
+g<-ggplot(Gradient, aes(x=Plot, y=names[i],group=1)) + 
+  geom_errorbar(aes(ymin=names[i]-se, ymax=names[i]+se), width=0.1,size=1.3) +
+  geom_line(size=1)+geom_point(size=10,shape=20,col="black")
+g
+
+  # Change the axis text
+  g2<-g + theme(axis.text.x=element_text(angle=55, size=14, vjust=0.5)) + theme(axis.text.y=element_text(angle=0, size=14, vjust=0.5))+
+    labs(x="Stage of collapse", y=names[i])
+  g3<-g2+theme(axis.text = element_text(size = 50, colour = "black"), panel.background = element_rect(fill = "white", colour = NA))
+  g4<-g3+theme(axis.title.y = element_text(size = rel(1), angle = 90,vjust=1.5),
+               axis.title.x = element_text(size = rel(1)))
+  g4
+  # Change the aesthetics
+  GF1<-g4+theme(panel.border = element_rect(color="darkred", size=0.5, linetype="solid",fill=NA))
+  GF1
+}
+dev.off()
+
 
 pdf("Figures/Gradient_models.pdf")
 #loop to go through different variables and produce models and figures for each of these

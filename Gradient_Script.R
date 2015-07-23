@@ -11,7 +11,6 @@ library(lattice) # For dotplot (caterpillar plots)
 library(pgirmess) # Kruskal-wallis post-hoc
 
 ## Read functions that will come in useful later
-# Plots graphs with standard error
 summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
                       conf.interval=.95, .drop=TRUE) {
   library(plyr)
@@ -34,7 +33,8 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
                  measurevar
   )
   
-  # Rename the "mean" column    
+  # # Plots graphs with standard error
+sumRename the "mean" column    
   datac <- rename(datac, c("mean" = measurevar))
   
   datac$se <- datac$sd / sqrt(datac$N)  # Calculate standard error of the mean
