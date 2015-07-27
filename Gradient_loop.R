@@ -78,7 +78,7 @@ for (i in 5:(ncol(Gradient))){
       # Produce confidence intervals
       Preds<-expand.grid(SBAPC=seq(0,1,0.01),Site=Gradient$Site)
       Preds$Gradient[[i]] <- predict(model.avg(Model_sel),Preds,re.form=NA)
-      mm <- model.matrix(model.avg(Model_sel),Preds)
+      mm <- model.matrix(model.frame(Model_sel),Preds)
       pvar1 <- diag(mm %*% tcrossprod(vcov(model.avg(Model_sel))),mm)
       tvar1 <- pvar1+VarCorr(model.avg(Model_sel))$Site[1]
       cmult <- 2
@@ -107,7 +107,7 @@ for (i in 5:(ncol(Gradient))){
    Model_sel<-model.sel(Modnull1,Mod_cont,Mod_cont_NL,extra = r.squaredGLMM)
    Preds<-expand.grid(SBAPC=seq(0,1,0.01),Site=Gradient$Site)
    Preds<-expand.grid(SBAPC=seq(0,1,0.01),Site=Gradient$Site)
-   mm <- model.matrix(terms(model.avg(Model_sel),Preds))
+   mm <- model.matrix(terms(model.frame(Model_sel),Preds))
    newdat$Fungi <- predict(model.avg(Model_sel),Preds,re.form=NA)
    pvar1 <- diag(mm %*% tcrossprod(vcov(model.avg(Model_sel)),mm))
    tvar1 <- pvar1+VarCorr(model.avg(Model_sel))$Site[1]
