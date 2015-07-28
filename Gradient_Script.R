@@ -11,7 +11,6 @@ library(lattice) # For dotplot (caterpillar plots)
 library(pgirmess) # Kruskal-wallis post-hoc
 
 ## Read functions that will come in useful later
-# Plots graphs with standard error
 summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
                       conf.interval=.95, .drop=TRUE) {
   library(plyr)
@@ -34,7 +33,8 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
                  measurevar
   )
   
-  # Rename the "mean" column    
+  # # Plots graphs with standard error
+sumRename the "mean" column    
   datac <- rename(datac, c("mean" = measurevar))
   
   datac$se <- datac$sd / sqrt(datac$N)  # Calculate standard error of the mean
@@ -458,11 +458,19 @@ View(Gradient6)
 ## The richness of all ground flora (woody and non-woody species) - "CompTot"
 # Inspect data
 hist(Gradient6$CompTot)
+<<<<<<< HEAD
 #Shapiro-Wilk for normaility tests as x has levels (without adjusting for multiple testing). 
 Shapiro_wilk<-do.call("rbind", with(Gradient6, tapply(CompTot, Plot,
                                        function(x) unlist(shapiro.test(x)[c("statistic", "p.value")])))) 
 bartlett.test(resid(lm(CompTot~Plot))~Plot,data=Gradient6) # Homogeneity of Variance of residuals
 par(mfrow=c(2,2))
+=======
+# Shapiro-Wilk for normaility tests as x has levels (without adjusting for multiple testing). 
+do.call("rbind", with(Gradient6, tapply(CompTot, Plot,
+                                       function(x) unlist(shapiro.test(x)[c("statistic", "p.value")])))) 
+bartlett.test(resid(lm(CompTot~Plot))~Plot,data=Gradient6) # Homogeneity of Variance of residuals
+par(mfrow = c(2,2))
+>>>>>>> 6a37c13a50a45eacc33e8fef947b239e7f429c12
 plot(aov(CompTot~Plot,data=Gradient6)) # diagnostic plots
 
 oneway.test(CompTot~Plot,data=Gradient6) #one-way ANOVA with welch's correction due to heterogeneity of variance
@@ -519,10 +527,9 @@ print(Modnull2) # STD for soil is 0 - don't include.
 # Use Modnull1
 
 # Plot a dotplot to test to see if intercepts change
-Dp<-dotplot(ranef(Modnull1,condVar=TRUE),
+dotplot(ranef(Modnull1,condVar=TRUE),
         lattice.options=list(layout=c(1,1)))
 # Create different models. Focus on plot first just using Plot as a factor
-GF1<-glmer(CompTot ~ Plot + (1| Site), data = Gradient6,family=poisson)
 # Use mixed models that includes a proxy measure of herbivore pressure. In this case, it is Dung, a measure of dung counts of all herbivores 
 Mod1<- glmer(CompTot~Plot+Dung+(1|Site),data=Gradient6,family=poisson)
 Mod2<- glmer(CompTot~Plot+(1|Site),data=Gradient6,family=poisson)
