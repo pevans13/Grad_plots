@@ -457,13 +457,20 @@ View(Gradient6)
 # Inspect data
 hist(Gradient6$CompTot)
 # Shapiro-Wilk for normaility tests as x has levels (without adjusting for multiple testing). 
-do.call("rbind", with(Gradient6, tapply(CompTot, Plot,
+Shapiro_wilk<-do.call("rbind", with(Gradient, tapply(CompTot, Plot,
                                        function(x) unlist(shapiro.test(x)[c("statistic", "p.value")])))) 
+write.csv(Shapiro_wilk,"Shapiro_wilk.csv")
+
+sink("F:/PhD/Chapter 1 Gradient Plots/Results/SW.txt",split=T)
 bartlett.test(resid(lm(CompTot~Plot))~Plot,data=Gradient6) # Homogeneity of Variance of residuals
 par(mfrow = c(2,2))
-plot(aov(CompTot~Plot,data=Gradient6)) # diagnostic plots
+plot(aov(CompTot~Plot,data=Gradient)) # diagnostic plots
 
-oneway.test(CompTot~Plot,data=Gradient6) #one-way ANOVA with welch's correction due to heterogeneity of variance
+Com2<-oneway.test(CompTot~Plot,data=Gradient) #one-way ANOVA with welch's correction due to heterogeneity of variance
+str(Com2)
+data.frame(Com2)
+
+
 # Following Welch's one.way, Games-Howell post hoc can be used
 tukey(Gradient6$CompTot,Gradient6$Plot,method="Games-Howell") # Need a post-hoc test for Welch's correction anova
 
@@ -509,12 +516,16 @@ summary(glht(mod,linfct=mcp(Plot="Tukey")))
 ## Random effects modelling
 Modnull<-glm(CompTot~1,data=Gradient6,family=poisson)
 Modnull1<-glmer(CompTot~ 1 +(1|Site),data=Gradient6,family=poisson) # Site only as random effect
-Modnull2<- glmer(CompTot~ 1 +(1|Site)+(1|Soil_Type),data=Gradient6,family=poisson) # Try site and soil type as random effects
+Modnull2<- glmer(CompTot~ 1 +(1|Site),data=Gradient6,family=poisson) # Try site and soil type as random effects
 # Test to see if random effects make a difference - judge by std. dev being higher than 0
 print(Modnull)
 print(Modnull1)
 print(Modnull2) # STD for soil is 0 - don't include.
 # Use Modnull1
+
+stargazer(Modnull, Modnull1, Modnull2, type="text",out="models.txt")
+
+
 
 # Plot a dotplot to test to see if intercepts change
 dotplot(ranef(Modnull1,condVar=TRUE),

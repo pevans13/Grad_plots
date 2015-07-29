@@ -8,6 +8,8 @@ library(plyr)
 library(lme4)
 library(MuMIn)
 library(reshape)
+install.packages("stargazer")
+library(stargazer)
 
 se <- function(x) sqrt(var(x)/length(x))
 
@@ -78,7 +80,7 @@ for (i in 5:(ncol(Gradient))){
       # Produce confidence intervals
       Preds<-expand.grid(SBAPC=seq(0,1,0.01),Site=Gradient$Site)
       Preds$Gradient[[i]] <- predict(model.avg(Model_sel),Preds,re.form=NA)
-      mm <- model.matrix(model.frame(Model_sel),Preds)
+      mm <- model.matrix((Model_sel),Preds)
       pvar1 <- diag(mm %*% tcrossprod(vcov(model.avg(Model_sel))),mm)
       tvar1 <- pvar1+VarCorr(model.avg(Model_sel))$Site[1]
       cmult <- 2
@@ -150,9 +152,7 @@ head(Gradient_melt)
 
 theme_set(theme_bw(base_size=12))
 Fungi_s<-subset(Gradient_summary, variable=='Fungi')
-limits <- aes(ymax = Mean + SE, ymin=Mean - SE)
-Plot1<-ggplot(data=Fungi_s,aes(x=Plot,y=Mean))+geom_point()
-+geom_errorbar(aes(ymin=Mean+SE,ymax=Mean-SE), width = 1)
+Plot1<-ggplot(data=Fungi_s,aes(x=Plot,y=Mean))+geom_point()+geom_pointrange(aes(ymin=Mean+SE,ymax=Mean-SE), width = 1)+geom_line(group=1)
 Plot1
 
 >>>>>>> 28b234acda44917f5a82a74bce14d808e9fcc5bc
