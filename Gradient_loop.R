@@ -11,7 +11,7 @@ library(reshape)
 install.packages("stargazer")
 library(stargazer)
 
-se <- function(x) sqrt(var(x)/length(x))
+stderr <- function(x) sqrt(var(x,na.rm=TRUE)/length(na.omit(x)))
 
 ## Read functions that will come in useful later
 summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
@@ -52,7 +52,7 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
 }
 
 #load data
-Gradient<- read.csv("FinPlots7.csv")
+Gradient<- read.csv("FinPlots99.csv")
 str(Gradient)
 
 
@@ -67,36 +67,53 @@ for (i in 5:(ncol(Gradient))){
 }
 dev.off()
 
-=======
->>>>>>> 28b234acda44917f5a82a74bce14d808e9fcc5bc
+
 pdf("Figures/Gradient_models.pdf")
 #loop to go through different variables and produce models and figures for each of these
-for (i in 5:(ncol(Gradient))){
-    if(is.integer(Gradient[[i]])==T){
-      Modnull1<-glmer(Gradient[[i]]~ 1 +(1|Site),data=Gradient,family="poisson")
-      Mod_cont<-glmer(Gradient[[i]] ~ SBAPC + (1| Site), data = Gradient,family="poisson")
-      Mod_cont_NL<-glmer(Gradient[[i]]~SBAPC+I(SBAPC^2)+(1| Site), data = Gradient,family="poisson")
+str(Gradient)
+names(Gradient)
+Poivar <- Gradient[c(1:33)] # variables that need a poisson error distribution
+Qlovar <- Gradient[c(75:101)] # Variables that are in percentages
+
+for (i in 10:(ncol(Poivar))){
+      Modnull1<-glmer(Poivar[[i]]~ 1 +(1|Site),data=Poivar,family="poisson")
+      Mod_cont<-glmer(Poivar[[i]] ~ SBAPC + (1| Site), data = Poivar,family="poisson")
+      Mod_cont_NL<-glmer(Poivar[[i]]~SBAPC+I(SBAPC^2)+(1| Site), data = Poivar,family="poisson")
       Model_sel<-model.sel(Modnull1,Mod_cont,Mod_cont_NL,extra = r.squaredGLMM)
-      # Produce confidence intervals
-      Preds<-expand.grid(SBAPC=seq(0,1,0.01),Site=Gradient$Site)
-      Preds$Gradient[[i]] <- predict(model.avg(Model_sel),Preds,re.form=NA)
+      print(Model_sel)
+      write.csv(Model_sel,paste(names[i],".csv",sep=""),row.names=F)
+              }
+}
+
+      Preds$Gradient[[5]] <- predict(model.avg(Model_sel),Preds,re.form=NA)
       mm <- model.matrix((Model_sel),Preds)
       pvar1 <- diag(mm %*% tcrossprod(vcov(model.avg(Model_sel))),mm)
       tvar1 <- pvar1+VarCorr(model.avg(Model_sel))$Site[1]
+
+      newdat<-data.frame(SBAPC=seq(0,1,0.01))
+      model.matrix(terms(Mod_cont_NL),newdat)
+      
+      mm <- model.matrix(terms(Mod_cont_NL),newdat)
+      newdat$Pred<-predict(Top_model,newdat,re.form=NA)
+      colnames(newdat)[2]<-colnames(Gradient[i])
+      
+      pvar1 <- diag(mm %*% tcrossprod(vcov(Top_model)),mm)
+      tvar1 <- pvar1+VarCorr(Top_model)$Site[1]
+
       cmult <- 2
       newdat <- data.frame(
         Preds
-        , plo = newdat$Gradient[[i]]-cmult*sqrt(pvar1)
-        , phi = newdat$Gradient[[i]]+cmult*sqrt(pvar1)
-        , tlo = newdat$Gradient[[i]]-cmult*sqrt(tvar1)
-        , thi = newdat$Gradient[[i]]+cmult*sqrt(tvar1)
+        , plo = newdat$Pred-cmult*sqrt(pvar1)
+        , phi = newdat$Pred+cmult*sqrt(pvar1)
+        , tlo = newdat$Pred-cmult*sqrt(tvar1)
+        , thi = newdat$Pred+cmult*sqrt(tvar1)
       )
       Preds$PredR<-(predict(model.avg(Model_sel),newdata =Preds))
       Preds$Pred<-(predict(model.avg(Model_sel),newdata =Preds,re.form=NA))
       theme_set(theme_bw(base_size=12))
       Plot1<-ggplot(data=Gradient,aes(x=SBAPC*100,y=Gradient[[i]],colour=Site,group=Site))+geom_point(size=4,shape=1)
       Plot2<-Plot1+geom_ribbon(data=newdat,aes(ymax=exp(thi),ymin=exp(tlo)),alpha=0.01,colour=NA)
-      Plot3<-Plot2+geom_line(data=newdat,size=2,colour="black",aes(y=exp(Fungi),x=SBAPC*100,group=NULL))+
+      Plot3<-Plot2+geom_line(data=newdat,size=2,colour="black",aes(y=exp(Gradient[[i]]),x=SBAPC*100,group=NULL))+
         theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank(),panel.border = element_rect(size=1.5,colour="black",fill=NA))    
       Plot4<-Plot3+theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank(),panel.border = element_rect(size=1.5,colour="black",fill=NA))
       Plot5<-Plot4+xlab("Percentage loss of Basal area")+ylab(names[i])+ggtitle(names[i])+ theme(plot.title = element_text(lineheight=.8, face="bold",size=20))
@@ -140,11 +157,13 @@ for (i in 5:(ncol(Gradient))){
   summarySE(Gradient, measurevar=names[[i]], groupvars=c("Plot"))
 }
 
+stderr <- function(x) sqrt(var(x,na.rm=TRUE)/length(na.omit(x)))
+se <- function(x) sqrt(var(x)/length(x))
 head(Gradient)
 
 Gradient_melt<-melt(Gradient,id.vars = c("Site","Plot"))
-Gradient_melt$value<-ifelse(is.na(Gradient_melt$value),0,Gradient_melt$value)
-Gradient_summary<-ddply(Gradient_melt,.(Plot,variable),summarise,Mean=mean(value),SE=se(value))
+
+Gradient_summary<-ddply(Gradient_melt,.(Plot,variable),summarise,Mean=mean(value,na.rm = T),SE=se(value))
 
 ggplot(Gradient_summary,aes(x=Plot,y=Mean,ymax=Mean+(2*SE),ymin=Mean-(2*SE)))+geom_pointrange()+geom_line(group=1)+facet_wrap(~variable,scales = "free_y")
 ggsave("Figures/Gradient_summary.pdf",height=15,width=30,dpi=500,units="in")
@@ -153,6 +172,4 @@ head(Gradient_melt)
 theme_set(theme_bw(base_size=12))
 Fungi_s<-subset(Gradient_summary, variable=='Fungi')
 Plot1<-ggplot(data=Fungi_s,aes(x=Plot,y=Mean))+geom_point()+geom_pointrange(aes(ymin=Mean+SE,ymax=Mean-SE), width = 1)+geom_line(group=1)
-Plot1
 
->>>>>>> 28b234acda44917f5a82a74bce14d808e9fcc5bc

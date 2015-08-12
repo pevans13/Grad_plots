@@ -449,13 +449,22 @@ Theme23<-function (base_size = 12, base_family = "")
 }
 
 ### Read the important file.
-Gradient6<-FinPlots6 <- read.csv("F:/PhD/Chapter 1 Gradient Plots/Results/FinPlots6.csv")
+Gradient6<-FinPlots6 <- read.csv("FinPlots6.csv")
 View(Gradient6)
+
+
 
 ### Start the analysis of all the variables for the gradient plots
 ## The richness of all ground flora (woody and non-woody species) - "CompTot"
 # Inspect data
 hist(Gradient6$CompTot)
+<<<<<<< HEAD
+#Shapiro-Wilk for normaility tests as x has levels (without adjusting for multiple testing). 
+Shapiro_wilk<-do.call("rbind", with(Gradient6, tapply(CompTot, Plot,
+                                       function(x) unlist(shapiro.test(x)[c("statistic", "p.value")])))) 
+bartlett.test(resid(lm(CompTot~Plot))~Plot,data=Gradient6) # Homogeneity of Variance of residuals
+par(mfrow=c(2,2))
+=======
 # Shapiro-Wilk for normaility tests as x has levels (without adjusting for multiple testing). 
 Shapiro_wilk<-do.call("rbind", with(Gradient, tapply(CompTot, Plot,
                                        function(x) unlist(shapiro.test(x)[c("statistic", "p.value")])))) 
@@ -464,12 +473,17 @@ write.csv(Shapiro_wilk,"Shapiro_wilk.csv")
 sink("F:/PhD/Chapter 1 Gradient Plots/Results/SW.txt",split=T)
 bartlett.test(resid(lm(CompTot~Plot))~Plot,data=Gradient6) # Homogeneity of Variance of residuals
 par(mfrow = c(2,2))
+<<<<<<< HEAD
 plot(aov(CompTot~Plot,data=Gradient)) # diagnostic plots
 
 Com2<-oneway.test(CompTot~Plot,data=Gradient) #one-way ANOVA with welch's correction due to heterogeneity of variance
 str(Com2)
 data.frame(Com2)
 
+=======
+>>>>>>> 6a37c13a50a45eacc33e8fef947b239e7f429c12
+plot(aov(CompTot~Plot,data=Gradient6)) # diagnostic plots
+>>>>>>> e845fa961489270dc2b3a5eca0d5eb321845d1ae
 
 # Following Welch's one.way, Games-Howell post hoc can be used
 tukey(Gradient6$CompTot,Gradient6$Plot,method="Games-Howell") # Need a post-hoc test for Welch's correction anova
