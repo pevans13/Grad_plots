@@ -649,7 +649,7 @@ bartlett.test(resid(lm(CompTree~Plot))~Plot,data=Gradient6) # Homogeneity of Var
 kruskal.test(CompTree~Plot,data=Gradient6) # non-parametric one.way anova equivalent
 
 # Use the summarySE function to determine standard error for data
-newSE <- summarySE(Gradient6, measurevar="CompTree", groupvars=c("Plot"))
+newSE <- summarySE(Gradient, measurevar="CompTree", groupvars=c("Plot"))
 g<-ggplot(newSE, aes(x=Plot, y=CompTree,group=1)) + 
   geom_errorbar(aes(ymin=CompTree-se, ymax=CompTree+se), width=0.1,size=1.3) +
   geom_line(size=1)+geom_point(size=10,shape=20,col="black")
