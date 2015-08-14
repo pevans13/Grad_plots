@@ -1,0 +1,126 @@
+Site,Site
+Plot,Plot
+SBAPC,Percent loss of basal area
+SBA,Stand basal area (m^2 ha-1)
+Soil_Type,Soil type based on Natmap
+Sward,Sward height (cm)
+CerDungPro,Proportional Cervus dung amount
+EqqDungPro,Proportional Eqqus dung amount
+Fungi,Mycorhizzal fungi richness
+Ilexno,Holly trees present
+Fagusno,Beech trees present
+IlexJuv,Holly saplings present
+FagusJuv,Beech saplings present
+TotJuv,Saplings present of all tree species
+Cervus DungTot,Number of Cervus dung pellets present
+Eqqus DungTot,Number of Eqqus dung pellets present
+CompTot,Total ground flora richness
+CompGF,Ground flora richness of non-woody species
+CompTree,Ground flora richness of woody species
+DungTot,Number of dung pellets present for all species
+DungTotPro,Proportional dung amount for all species
+LichenRichOth,Lichen richness on other species
+LichenRichTot,Lichen richness on all species
+LichenRicHol,Lichen richness on holly
+LichenRichBeech,Lichen richness on beech
+IlexSL,Holly seedlings present
+FagusSL,Beech seedlings present
+QuerSL,Oak seedlings present
+TotSL,Seedlings present of all woody species
+BD (g/cm3),Bulk density (g cm-1)
+Depth,Depth of the organic soil layer (cm)
+DBH,Diamater at breast height (cm)
+Height,Beech stand height (m)
+SnagTot,Number of snags present for all species
+SnagFagus,Number of snags present for beech
+SnagIlex,Number of snags present for all holly
+SnagQuer,Number of snags present for all oak
+Fagus deadwood (m3),Lying deadwood of beech (m3)
+Ilex Lying Deadwood (m3),Lying deadwood of holly (m3)
+Quercus Lying Deadwood (m3),Lying deadwood of oak (m3)
+Lying Deadwood Total (m3),Lying deadwood of all species (m3)
+LOIO,Organic matter in organic layer (%)
+LOIM,Organic matter in mineral layer (%)
+NO3O,NO3O
+NO3M,NO3M
+NH4O,NH4O
+NH4M,NH4M
+PMNO,PMNO
+PMNM,PMNM
+CNRatioSoil,Carbon nitorgen ratio of the soil
+K,Potassium in the soil (cmol kg-1)
+Ca,Calcium in the soil (cmol kg-1)
+Mg,Magnesium in the soil (cmol kg-1)
+Na,Sodium in the soil (cmol kg-1)
+Al,Aluminium in the soil (cmol kg-1)
+Mn,Manganese in the soil (cmol kg-1)
+Fe,Iron in the soil (cmol kg-1)
+P,Phosphorus in the soil (cmol kg-1)
+MF_Min,Moisture factor of mineral layer soil
+MF_Org,Moisture factor of organic layer soil
+pH,pH of soil
+EC,Electrical conductivity of the soil (microSiemens)
+RCAmm,Ammonium (mg capsule -1)
+RCNit,Nitrate (mg capsule -1)
+Soil_Respiration,Soil_Respiration
+Soil_Temp,Soil_Temp
+Amb_Temp,Amb_Temp
+MFSR,MFSR
+C_Storage (tonnes/hectares),Carbon storage (tonnes ha-1)
+Biomass (m3/ha),Above ground biomass (m3 ha-1)
+Squirrel,Squirrel damage 
+Debarking,Debarking of holly
+Clay,Clay
+Silt,Silt
+Sand,Sand
+Bracken,Bracken
+Moss,Moss
+BareGround,BareGround
+BG.M,BG.M
+Litter,Litter
+FagusBrowse,FagusBrowse
+IlexBrowse,IlexBrowse
+Trampling,Trampling
+Hollyshrub,Hollyshrub
+Rubusshrub,Rubusshrub
+IlexEat,IlexEat
+RubEat,RubEat
+Structural Crown Loss (%),Structural Crown Loss (%)
+Leave Loss,Leave Loss
+Crown Condition,Crown Condition
+Discolouration,Discolouration
+Condition_unhealthiness,Condition_unhealthiness
+Undercond,Undercond
+Grass,Grass
+Canopy_openness,Canopy_openness
+Under_openness,Under_openness
+Canopy Openness Total,Canopy Openness Total
+100Clay,Clay content (0-2 µm) of soil (%)
+100Silt,Silt content (2-63 µm) of soil (%)
+100Sand,Sand content (63 µm-2mm) of soil (%)
+100Bracken,Ground cover of bracken (%)
+100Moss,Ground cover of moss (%)
+100BareGround,Ground cover of bareground (%)
+100BG.M,Ground cover of bareground and moss (%)
+100Litter,Ground cover of litter (%)
+100FagusBrowse,Palatable trees browsed (%)
+100IlexBrowse,Unpalatable trees browsed (%)
+100Trampling,Trampling (%)
+100Hollyshrub,Holly shrubs ground cover (%)
+100Rubusshrub,Bramble shrubs ground cover (%)
+100IlexEat,Holly shrubs browsed (%)
+100RubEat,Bramble shrubs browsed (%)
+100Crown_Loss,Potential canopy structure loss (%)
+100Leave_Loss,Potential canopy leave loss (%)
+100Crown_Condition,Crown condition (%)
+100Discolouration,Discolouration of canopy (%)
+100Condition_unhealthiness,Unhealthiness of beech trees (%)
+100Undercond,Condition of understorey (%)
+100Grass,Ground cover of grass (%)
+100Canopy_openness,Crown openness (%)
+100Under_openness,Understorey openness (%)
+100Canopy_Open_Total,Total canopy openness (%)
+Vsml,"Beech trees with DBH > 43.11 cm, < 59.59 cm"
+Med,"Beech trees with DBH > 59.59 cm, < 68.33 cm"
+Lrg,"Beech trees with DBH > 68.33 cm, <  74.97 cm"
+Huge,"Beech trees with DBH > 74.97 cm, <  103.00 cm"
