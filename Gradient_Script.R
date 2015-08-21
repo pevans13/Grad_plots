@@ -10,7 +10,6 @@ library(ggplot2)
 library(lattice) # For dotplot (caterpillar plots)
 library(pgirmess) # Kruskal-wallis post-hoc
 
-## Read functions that will come in useful later
 summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
                       conf.interval=.95, .drop=TRUE) {
   library(plyr)
@@ -33,8 +32,7 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
                  measurevar
   )
   
-  # # Plots graphs with standard error
-sumRename the "mean" column    
+  # Rename the "mean" column    
   datac <- rename(datac, c("mean" = measurevar))
   
   datac$se <- datac$sd / sqrt(datac$N)  # Calculate standard error of the mean
@@ -489,17 +487,17 @@ plot(aov(CompTot~Plot,data=Gradient6)) # diagnostic plots
 tukey(Gradient6$CompTot,Gradient6$Plot,method="Games-Howell") # Need a post-hoc test for Welch's correction anova
 
 # Use the summarySE function to determine standard error for data
-newSE <- summarySE(Gradient6, measurevar="CompTot", groupvars=c("Plot"))
-g<-ggplot(newSE, aes(x=Plot, y=CompTot,group=1)) + 
-  geom_errorbar(aes(ymin=CompTot-se, ymax=CompTot+se), width=0.1,size=1.3) +
+newSE <- summarySE(Gradient, measurevar="SBA", groupvars=c("Plot"))
+g<-ggplot(newSE, aes(x=Plot, y=SBA,group=1)) + 
+  geom_errorbar(aes(ymin=SBA-se, ymax=SBA+se), width=0.1,size=1.3) +
   geom_line(size=1)+geom_point(size=10,shape=20,col="black")
 g
 # Change the axis text
-g2<-g + theme(axis.text.x=element_text(angle=55, size=14, vjust=0.5)) + theme(axis.text.y=element_text(angle=0, size=14, vjust=0.5))+
-  labs(x="Stage of collapse", y="Total ground flora richness")
+g2<-g + theme(axis.text.x=element_text(angle=55, size=20, vjust=0.5)) + theme(axis.text.y=element_text(angle=0, size=20, vjust=0.5))+
+  labs(x="Stage of collapse", y="Stand basal area (SBA) (m2 ha-1)")
 g3<-g2+theme(axis.text = element_text(size = 50, colour = "black"), panel.background = element_rect(fill = "white", colour = NA))
-g4<-g3+theme(axis.title.y = element_text(size = rel(1), angle = 90,vjust=1.5),
-             axis.title.x = element_text(size = rel(1)))
+g4<-g3+theme(axis.title.y = element_text(size = 30, angle = 90,vjust=1.5),
+             axis.title.x = element_text(size = 30))
 g4
 # Change the aesthetics
 GF1<-g4+theme(panel.border = element_rect(color="darkred", size=0.5, linetype="solid",fill=NA))
