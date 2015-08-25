@@ -284,8 +284,7 @@ Plot1<-ggplot(data=Fungi_s,aes(x=Plot,y=Mean),group=1)+geom_point()+geom_pointra
 pdf("Figures/Anova_Poisson.pdf")
 # set the names of the variables thast are going to be modelled with a standard errors
 theme_set(theme_bw(base_size=12))
-m<-ggplot(subset(Gradient_summary, variable %in% c("Sward")),aes(x=Plot,y=mean))
-m<-m+geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width=0.1,size=1.3)+geom_line(size=1)+geom_point(size=10,shape=20,col="black")
+m<-ggplot(subset(Gradient_summary, variable %in% c("Sward")),aes(x=Plot,y=Mean))+geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width=0.1,size=1.3)+geom_line(size=1)+geom_point(size=10,shape=20,col="black")
 m
 m<-m+geom_pointrange(aes(ymin=Mean+SE,ymax=Mean-SE), width = 1)+geom_line(group=1)
 m
@@ -306,15 +305,18 @@ for (i in 6:(ncol(Poivar))){
 dev.off()
 
 ############ other stats #############
-names<-colnames(Gradient[,1:29])
+names2<-colnames(Gradient[,1:29])
 for (i in 6:10){
   Shapiro_wilk<-do.call("rbind", with(Gradient, tapply(names[i], Plot,
                                                        function(x) unlist(shapiro.test(x)[c("statistic", "p.value")])))) 
   write.csv(Shapiro_wilk,paste(names[i],".csv",sep=""),row.names=T)
 }
 
+i<-6
+
+
 for (i in 6:10){
-ll<-summary(aov(names[[i]]~Plot,data=Gradient)) # run if two tests are above 0.05. See one.way below, if not
+ll<-summary(aov(names2[[6]]~Plot,data=Gradient)) # run if two tests are above 0.05. See one.way below, if not
 }
 
 by(Gradient,Gradient$Plot,function(x){
